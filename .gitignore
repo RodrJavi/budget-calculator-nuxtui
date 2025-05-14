@@ -1,0 +1,22 @@
+# Ignore environment files
+.env
+.env.*
+
+# Node modules
+node_modules/
+**/node_modules/
+
+# Logs
+logs
+*.log
+
+# Build artifacts
+dist/
+build/
+.next/
+out/
+
+# OS & editor cruft
+.DS_Store
+.idea/
+.vscode/
