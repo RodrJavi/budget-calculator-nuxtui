@@ -11,7 +11,9 @@ const { isExpense } = defineProps<{
 
 // Store logic
 const store = useEntryStore();
-const entryList = isExpense ? store.expenseList : store.incomeList;
+const entryList = computed(() => {
+  return isExpense ? store.expenseList : store.incomeList;
+});
 
 // Table logic
 

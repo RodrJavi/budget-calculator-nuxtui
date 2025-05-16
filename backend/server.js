@@ -116,6 +116,7 @@ fastify.post("/api/login", async (req, reply) => {
 
   const payload = {
     username: user.username,
+    budgetList: user.budgetList,
   };
 
   if (!isValidPassword) {
@@ -132,7 +133,7 @@ fastify.post("/api/login", async (req, reply) => {
         maxAge: 3600,
         path: "/",
       })
-      .send({ message: "Login successful" });
+      .send({ budgetList: user.budgetList });
   }
 });
 
@@ -140,10 +141,10 @@ fastify.post("/api/login", async (req, reply) => {
 
 fastify.get("/api/auth-check", async (req, reply) => {
   try {
-    const decoded = await req.jwtVerify();
-    return { authenticated: true, user: decoded };
-  } catch (err) {
-    return reply.status(401).send({ authenticated: false });
+    const user = await req.jwtVerify();
+    return { authenticated: true, user };
+  } catch {
+    return { authenticated: false };
   }
 });
 

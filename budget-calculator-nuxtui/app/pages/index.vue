@@ -1,5 +1,6 @@
 <script setup lang="ts">
 // Store logic
+import type { User, BudgetList } from "@/types";
 const store = useEntryStore();
 
 /*const testIncomes = [
@@ -75,34 +76,54 @@ const incomeShown = ref(false);
 const testUser = ref("testUsername1");
 const testPassword = ref("testPassword1");
 
-async function testLogin() {
+// Logs in the user and fetches budget list to enter into store
+async function userLogin() {
   try {
-    const res = await $fetch("http://localhost:4000/api/login", {
-      method: "POST",
-      body: {
-        username: testUser.value,
-        password: testPassword.value,
-      },
-      credentials: "include",
-    });
-    console.log("Login successful:", res);
+    const res = await $fetch<{ budgetList: BudgetList }>(
+      "http://localhost:4000/api/login",
+      {
+        method: "POST",
+        body: {
+          username: testUser.value,
+          password: testPassword.value,
+        },
+        credentials: "include",
+      }
+    );
+    store.incomeList = res.budgetList.incomeList;
+    store.expenseList = res.budgetList.expenseList;
   } catch (e: unknown) {
     const error = e as { data?: { error: string }; message: string };
     console.error("Login failed:", error.data?.error || error.message);
   }
 }
 
+// Checking if user is logged in and fetching budget list data
 async function checkLogin() {
   try {
-    const res = await $fetch("http://localhost:4000/api/auth-check", {
-      credentials: "include",
-    });
-    console.log("Login check successful:", res);
+    const res = await $fetch<{ authenticated: boolean; user?: User["user"] }>(
+      "http://localhost:4000/api/auth-check",
+      {
+        credentials: "include",
+      }
+    );
+    if (res.authenticated && res.user) {
+      store.incomeList = res.user.budgetList.incomeList;
+      store.expenseList = res.user.budgetList.expenseList;
+    }
   } catch (e: unknown) {
-    const error = e as { data?: { error: string }; message: string };
-    console.error("Login check failed:", error.data?.error || error.message);
+    const error = e as {
+      data?: { error: string };
+      statusCode?: number;
+      message: string;
+    };
+    if (error.statusCode !== 401) {
+      console.error("Login check failed:", error.data?.error || error.message);
+    }
   }
 }
+
+checkLogin();
 </script>
 
 <template>
@@ -110,10 +131,11 @@ async function checkLogin() {
     <div class="">
       <header>
         <h1 class="p-4 text-3xl bg-gray-200">Budget calculator</h1>
-        <UButton label="Login" @click="testLogin" />
+        <UButton label="Login" @click="userLogin" />
         <UButton label="Auth check" @click="checkLogin" />
       </header>
 
+      <!-- Doughnut chart -->
       <div class="flex flex-col p-2 justify-center">
         <UButton
           class="h-auto w-min btn-primary text-2xl"
@@ -126,13 +148,15 @@ async function checkLogin() {
         </div>
       </div>
 
+      <!-- Net amount display -->
       <div class="lg:flex lg:justify-center lg:gap-4 lg:my-5">
-        <h2 class="text-2xl md:text-3xl p-4 lg:p-0">Net gain/loss</h2>
-        <div class="flex justify-center p-4 lg:p-0">
-          <span class="text-3xl">{{ total }}</span>
-        </div>
+        <h2 class="text-2xl md:text-3xl p-4 lg:p-0">
+          Net gain/loss {{ total }}
+        </h2>
+        <UButton class="text-xl" label="Save Budget" />
       </div>
 
+      <!-- Parent div container for tables -->
       <div class="md:flex md:justify-between md:gap-4 mx-2 lg:px-10 lg:mt-10">
         <JMoneyContainer type="Incomes (monthly)" class="md:w-1/2" />
         <JMoneyContainer
