@@ -63,6 +63,46 @@ const total = computed(() => {
 });
 
 const incomeShown = ref(false);
+
+// async function testUserFetch() {
+//   const res = await $fetch("http://localhost:4000/api/users", {
+//     method: "GET",
+//   });
+
+//   console.log(res[0]);
+// }
+
+const testUser = ref("testUsername1");
+const testPassword = ref("testPassword1");
+
+async function testLogin() {
+  try {
+    const res = await $fetch("http://localhost:4000/api/login", {
+      method: "POST",
+      body: {
+        username: testUser.value,
+        password: testPassword.value,
+      },
+      credentials: "include",
+    });
+    console.log("Login successful:", res);
+  } catch (e: unknown) {
+    const error = e as { data?: { error: string }; message: string };
+    console.error("Login failed:", error.data?.error || error.message);
+  }
+}
+
+async function checkLogin() {
+  try {
+    const res = await $fetch("http://localhost:4000/api/auth-check", {
+      credentials: "include",
+    });
+    console.log("Login check successful:", res);
+  } catch (e: unknown) {
+    const error = e as { data?: { error: string }; message: string };
+    console.error("Login check failed:", error.data?.error || error.message);
+  }
+}
 </script>
 
 <template>
@@ -70,6 +110,8 @@ const incomeShown = ref(false);
     <div class="">
       <header>
         <h1 class="p-4 text-3xl bg-gray-200">Budget calculator</h1>
+        <UButton label="Login" @click="testLogin" />
+        <UButton label="Auth check" @click="checkLogin" />
       </header>
 
       <div class="flex flex-col p-2 justify-center">

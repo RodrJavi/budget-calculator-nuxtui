@@ -2,6 +2,8 @@ import Fastify from "fastify";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import cors from "@fastify/cors";
+import fastifyCookie from "@fastify/cookie";
 
 dotenv.config();
 
@@ -9,8 +11,19 @@ const fastify = Fastify({
   logger: true,
 });
 
+await fastify.register(fastifyCookie);
+
 fastify.register(import("fastify-jwt"), {
-  secret: process.env.JWT_SECRET, // use a strong secret in env
+  secret: process.env.JWT_SECRET,
+  cookie: {
+    cookieName: "token",
+    signed: false,
+  },
+});
+
+fastify.register(cors, {
+  origin: "http://localhost:3000",
+  credentials: true,
 });
 
 mongoose
@@ -99,13 +112,39 @@ fastify.post("/api/login", async (req, reply) => {
     return reply.status(401).send({ error: "Invalid username or password" });
   }
 
-  const isValidPassword = bcrypt.compare(password, user.password);
+  const isValidPassword = await bcrypt.compare(password, user.password);
+
+  const payload = {
+    username: user.username,
+  };
 
   if (!isValidPassword) {
     return reply.status(401).send({ error: "Invalid username or password" });
+  } else {
+    const token = fastify.jwt.sign(payload, {
+      expiresIn: "1h",
+    });
+    return reply
+      .setCookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 3600,
+        path: "/",
+      })
+      .send({ message: "Login successful" });
   }
+});
 
-  return reply.send({ message: "Login successful" });
+// Checking if user is logged in
+
+fastify.get("/api/auth-check", async (req, reply) => {
+  try {
+    const decoded = await req.jwtVerify();
+    return { authenticated: true, user: decoded };
+  } catch (err) {
+    return reply.status(401).send({ authenticated: false });
+  }
 });
 
 // Saving a new budget
