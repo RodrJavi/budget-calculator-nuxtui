@@ -179,3 +179,11 @@ fastify.listen({ port: 4000 }, (err, address) => {
   if (err) throw err;
   console.log(`Server listening at ${address}`);
 });
+
+// Logs user out
+
+fastify.post("/api/logout", async (req, reply) => {
+  return reply
+    .clearCookie("token", { path: "/" })
+    .send({ message: "Logged out" });
+});

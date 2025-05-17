@@ -1,12 +1,23 @@
 <script setup lang="ts">
 import type { Entry } from "@/types";
 
-const { chartData } = defineProps<{
+const { chartData, incomeShown } = defineProps<{
   chartData: Entry[];
+  incomeShown: boolean;
 }>();
 
 const option = computed(() => {
   return {
+    title: {
+      text: incomeShown ? "Income" : "Expenses",
+      left: "center",
+      top: "top",
+      textStyle: {
+        fontSize: 25,
+        fontWeight: "bold",
+        color: "#333",
+      },
+    },
     tooltip: { trigger: "item" },
     series: [
       {

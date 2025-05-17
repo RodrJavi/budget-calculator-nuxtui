@@ -80,6 +80,7 @@ async function checkLogin() {
     if (res.authenticated && res.user) {
       store.incomeList = res.budgetList.incomeList;
       store.expenseList = res.budgetList.expenseList;
+      isLoggedIn.value = true;
       console.log(res);
     }
   } catch (e: unknown) {
@@ -120,6 +121,28 @@ async function saveBudgetList() {
   }
 }
 
+async function logUserOut() {
+  try {
+    const res = await $fetch("http://localhost:4000/api/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    console.log(res);
+    store.incomeList = [];
+    store.expenseList = [];
+    isLoggedIn.value = false;
+  } catch (e: unknown) {
+    const error = e as {
+      data?: { error: string };
+      statusCode?: number;
+      message: string;
+    };
+    if (error.statusCode !== 401) {
+      console.error("Login check failed:", error.data?.error || error.message);
+    }
+  }
+}
+
 checkLogin();
 </script>
 
@@ -128,20 +151,20 @@ checkLogin();
     <div class="">
       <header class="flex bg-gray-200 justify-between p-2">
         <h1 class="p-4 text-3xl bg-gray-200">Budget calculator</h1>
-        <JLoginButton @logged-in="isLoggedIn = true" />
-        <UButton label="Auth check" @click="checkLogin" />
+        <JLoginButton v-if="!isLoggedIn" @logged-in="isLoggedIn = true" />
+        <UButton v-if="isLoggedIn" label="Log out" @click="logUserOut" />
       </header>
 
       <!-- Doughnut chart -->
       <div class="flex flex-col p-2 justify-center">
         <UButton
           class="h-auto w-min btn-primary text-2xl"
-          :label="incomeShown ? 'Income' : 'Expenses'"
+          :label="'Toggle chart'"
           @click="incomeShown = !incomeShown" />
-
         <div class="flex justify-center">
           <JChart
-            :chart-data="incomeShown ? store.incomeList : store.expenseList" />
+            :chart-data="incomeShown ? store.incomeList : store.expenseList"
+            :income-shown="incomeShown" />
         </div>
       </div>
 
@@ -155,7 +178,10 @@ checkLogin();
           class="text-xl"
           label="Save Budget"
           @click="saveBudgetList" />
-        <UButton v-else label="Log in to save your budget" disabled />
+        <UButton
+          v-if="!isLoggedIn"
+          label="Log in to save your budget"
+          disabled />
       </div>
 
       <!-- Parent div container for tables -->

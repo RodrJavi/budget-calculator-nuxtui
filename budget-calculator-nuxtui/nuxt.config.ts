@@ -9,7 +9,7 @@ export default defineNuxtConfig({
   echarts: {
     renderer: "svg",
     charts: ["PieChart"],
-    components: ["TooltipComponent", "LegendComponent"],
+    components: ["TooltipComponent", "LegendComponent", "TitleComponent"],
   },
 
   future: {
