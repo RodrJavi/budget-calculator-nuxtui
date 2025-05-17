@@ -24,6 +24,7 @@ fastify.register(import("fastify-jwt"), {
 fastify.register(cors, {
   origin: "http://localhost:3000",
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 });
 
 mongoose
@@ -93,47 +94,51 @@ fastify.post("/api/users", async (req, reply) => {
   console.log("Hashed password:", hashedPassword);
 
   const result = User.insertOne({ username, password: hashedPassword });
-  return reply.status(201).send({ userId: result.insertedId });
+  return reply.status(201).send({ message: "User created", result });
 });
 
 // User login
 
 fastify.post("/api/login", async (req, reply) => {
-  const { username, password } = req.body;
+  try {
+    const { username, password } = req.body;
 
-  if (!username || !password) {
-    return reply
-      .status(400)
-      .send({ error: "Username and password are required" });
-  }
+    if (!username || !password) {
+      return reply
+        .status(400)
+        .send({ error: "Username and password are required" });
+    }
 
-  const user = await User.findOne({ username: username });
-  if (!user) {
-    return reply.status(401).send({ error: "Invalid username or password" });
-  }
+    const user = await User.findOne({ username: username });
+    if (!user) {
+      return reply.status(401).send({ error: "Invalid username or password" });
+    }
 
-  const isValidPassword = await bcrypt.compare(password, user.password);
+    const isValidPassword = await bcrypt.compare(password, user.password);
 
-  const payload = {
-    username: user.username,
-    budgetList: user.budgetList,
-  };
+    const payload = {
+      username: user.username,
+    };
 
-  if (!isValidPassword) {
-    return reply.status(401).send({ error: "Invalid username or password" });
-  } else {
-    const token = fastify.jwt.sign(payload, {
-      expiresIn: "1h",
-    });
-    return reply
-      .setCookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 3600,
-        path: "/",
-      })
-      .send({ budgetList: user.budgetList });
+    if (!isValidPassword) {
+      return reply.status(401).send({ error: "Invalid username or password" });
+    } else {
+      const token = fastify.jwt.sign(payload, {
+        expiresIn: "1h",
+      });
+      return reply
+        .setCookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 3600,
+          path: "/",
+        })
+        .send({ budgetList: user.budgetList });
+    }
+  } catch (err) {
+    console.error("Unexpected error in /api/login:", err);
+    return reply.status(500).send({ error: "Internal server error" });
   }
 });
 
@@ -142,7 +147,10 @@ fastify.post("/api/login", async (req, reply) => {
 fastify.get("/api/auth-check", async (req, reply) => {
   try {
     const user = await req.jwtVerify();
-    return { authenticated: true, user };
+    const userDoc = await User.findOne({
+      username: user.username,
+    }).select("budgetList -_id");
+    return { authenticated: true, user, budgetList: userDoc?.budgetList };
   } catch {
     return { authenticated: false };
   }
@@ -150,10 +158,11 @@ fastify.get("/api/auth-check", async (req, reply) => {
 
 // Saving a new budget
 fastify.put("/api/save-budget", async (req, reply) => {
-  const { username, budgetList } = req.body;
+  const { budgetList } = req.body;
+  const user = await req.jwtVerify();
 
   const result = await User.updateOne(
-    { username },
+    { username: user.username },
     { $set: { budgetList: budgetList } },
     { upsert: false }
   );
