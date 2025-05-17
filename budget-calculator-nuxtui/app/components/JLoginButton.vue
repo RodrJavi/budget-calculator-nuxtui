@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { BudgetList } from "@/types";
 
+const emit = defineEmits<{
+  (e: "logged-in"): void;
+}>();
+
 const loginOpen = ref(false);
 const loginFailed = ref(false);
 const username = ref("");
@@ -30,6 +34,10 @@ async function userSignUp() {
       });
       if (res) {
         console.log(res);
+        username.value = "";
+        password.value = "";
+        confirmPassword.value = "";
+        userLogin();
       }
     } catch (e: unknown) {
       const error = e as {
@@ -63,9 +71,20 @@ async function userLogin() {
         credentials: "include",
       }
     );
-    store.incomeList = res.budgetList.incomeList;
-    store.expenseList = res.budgetList.expenseList;
+
+    if (res.budgetList.incomeList.length != 0) {
+      store.incomeList = res.budgetList.incomeList;
+    }
+
+    if (res.budgetList.expenseList.length != 0) {
+      store.expenseList = res.budgetList.expenseList;
+    }
+
     loginOpen.value = false;
+    username.value = "";
+    password.value = "";
+    confirmPassword.value = "";
+    emit("logged-in");
   } catch (e: unknown) {
     const error = e as {
       data?: { error: string };
@@ -118,23 +137,19 @@ async function userLogin() {
           >Passwords must match</span
         >
         <label for="Username">Username:</label>
-        <UInput
-          id="Username"
-          v-model="username"
-          name="Username"
-          placeholder="Enter username" />
+        <UInput id="Username" v-model="username" placeholder="Enter username" />
         <label for="Password">Password:</label>
         <UInput
+          id="Password"
           v-model="password"
-          name="Password"
           type="password"
           placeholder="Enter password" />
 
         <label v-if="signingUp" for="Confirm password">Confirm password:</label>
         <UInput
           v-if="signingUp"
+          id="Confirm password"
           v-model="confirmPassword"
-          name="Confirm password"
           type="password"
           placeholder="Confirm password" />
         <UButton

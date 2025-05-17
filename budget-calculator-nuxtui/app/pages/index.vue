@@ -65,6 +65,8 @@ const total = computed(() => {
 
 const incomeShown = ref(false);
 
+const isLoggedIn = ref(false);
+
 // Checking if user is logged in and fetching budget list data
 async function checkLogin() {
   try {
@@ -126,7 +128,7 @@ checkLogin();
     <div class="">
       <header class="flex bg-gray-200 justify-between p-2">
         <h1 class="p-4 text-3xl bg-gray-200">Budget calculator</h1>
-        <JLoginButton />
+        <JLoginButton @logged-in="isLoggedIn = true" />
         <UButton label="Auth check" @click="checkLogin" />
       </header>
 
@@ -138,8 +140,8 @@ checkLogin();
           @click="incomeShown = !incomeShown" />
 
         <div class="flex justify-center">
-          <JChart v-if="incomeShown" :chart-data="store.incomeList" />
-          <JChart v-if="!incomeShown" :chart-data="store.expenseList" />
+          <JChart
+            :chart-data="incomeShown ? store.incomeList : store.expenseList" />
         </div>
       </div>
 
@@ -148,7 +150,12 @@ checkLogin();
         <h2 class="text-2xl md:text-3xl p-4 lg:p-0">
           Net gain/loss {{ total }}
         </h2>
-        <UButton class="text-xl" label="Save Budget" @click="saveBudgetList" />
+        <UButton
+          v-if="isLoggedIn"
+          class="text-xl"
+          label="Save Budget"
+          @click="saveBudgetList" />
+        <UButton v-else label="Log in to save your budget" disabled />
       </div>
 
       <!-- Parent div container for tables -->
