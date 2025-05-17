@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { Entry } from "@/types";
 import type { TableColumn } from "@nuxt/ui";
-import type { Column } from "@tanstack/vue-table";
+import type { Column, Row } from "@tanstack/vue-table";
 const UBadge = resolveComponent("UBadge");
 const UButton = resolveComponent("UButton");
+const UDropdownMenu = resolveComponent("UDropdownMenu");
 
 const { isExpense } = defineProps<{
   isExpense: boolean;
@@ -34,6 +35,21 @@ function createHeaderSorting(column: Column<Entry>, label: string) {
   });
 }
 
+function getRowItems(row: Row<Entry>) {
+  return [
+    {
+      type: "label",
+      label: "Actions",
+    },
+    {
+      label: "Delete",
+      onSelect() {
+        store.removeEntry(row.getValue("title"), isExpense);
+      },
+    },
+  ];
+}
+
 const columns = computed<TableColumn<Entry>[]>(() => {
   const _columns: TableColumn<Entry>[] = [
     {
@@ -55,11 +71,38 @@ const columns = computed<TableColumn<Entry>[]>(() => {
         return h("div", { class: "font-medium md:text-lg" }, formatted);
       },
     },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        return h(
+          "div",
+          { class: "text-right" },
+          h(
+            UDropdownMenu,
+            {
+              content: {
+                align: "end",
+              },
+              items: getRowItems(row),
+              "aria-label": "Actions dropdown",
+            },
+            () =>
+              h(UButton, {
+                icon: "i-lucide-ellipsis-vertical",
+                color: "neutral",
+                variant: "ghost",
+                class: "ml-auto",
+                "aria-label": "Actions dropdown",
+              })
+          )
+        );
+      },
+    },
   ];
   if (isExpense) {
-    _columns.push({
+    _columns.splice(_columns.length - 1, 0, {
       accessorKey: "importance",
-      header: ({ column }) => createHeaderSorting(column, "Importance"),
+      header: ({ column }) => createHeaderSorting(column, "Imptc."),
       cell: ({ row }) => {
         const color = {
           High: "error" as const,

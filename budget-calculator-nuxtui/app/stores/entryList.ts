@@ -14,5 +14,17 @@ export const useEntryStore = defineStore("entries", () => {
     }
   }
 
-  return { incomeList, expenseList, addNewEntry };
+  function removeEntry(entryTitle: string, isExpense: boolean) {
+    if (isExpense) {
+      expenseList.value = expenseList.value.filter(
+        (entry) => entry.title !== entryTitle
+      );
+    } else {
+      incomeList.value = incomeList.value.filter(
+        (entry) => entry.title !== entryTitle
+      );
+    }
+  }
+
+  return { incomeList, expenseList, addNewEntry, removeEntry };
 });
