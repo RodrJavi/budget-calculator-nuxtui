@@ -33,7 +33,7 @@ async function userSignUp() {
         credentials: "include",
       });
       if (res) {
-        console.log(res);
+        console.log("User created successfully");
         username.value = "";
         password.value = "";
         confirmPassword.value = "";

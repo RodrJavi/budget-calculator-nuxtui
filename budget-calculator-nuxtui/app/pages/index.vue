@@ -81,7 +81,6 @@ async function checkLogin() {
       store.incomeList = res.budgetList.incomeList;
       store.expenseList = res.budgetList.expenseList;
       isLoggedIn.value = true;
-      console.log(res);
     }
   } catch (e: unknown) {
     const error = e as {
@@ -108,7 +107,9 @@ async function saveBudgetList() {
       },
       credentials: "include",
     });
-    console.log(res);
+    if (res) {
+      console.log("Budget list saved successfully");
+    }
   } catch (e: unknown) {
     const error = e as {
       data?: { error: string };
@@ -127,10 +128,13 @@ async function logUserOut() {
       method: "POST",
       credentials: "include",
     });
-    console.log(res);
     store.incomeList = [];
     store.expenseList = [];
     isLoggedIn.value = false;
+
+    if (res) {
+      console.log("Logged out successfully");
+    }
   } catch (e: unknown) {
     const error = e as {
       data?: { error: string };
@@ -175,7 +179,7 @@ checkLogin();
         </h2>
         <UButton
           v-if="isLoggedIn"
-          class="text-xl"
+          class="text-xl m-4"
           label="Save Budget"
           @click="saveBudgetList" />
         <UButton
