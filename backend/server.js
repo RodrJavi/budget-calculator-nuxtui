@@ -30,16 +30,7 @@ fastify.register(import("fastify-jwt"), {
 // });
 
 fastify.register(cors, {
-  origin: (origin, cb) => {
-    const allowedOrigins = (process.env.CORS_ORIGIN || "").split(",");
-
-    // allow requests with no origin (like curl or mobile apps)
-    if (!origin || allowedOrigins.includes(origin)) {
-      cb(null, true);
-    } else {
-      cb(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: "https://budget-calculator-nuxtui.vercel.app",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 });
