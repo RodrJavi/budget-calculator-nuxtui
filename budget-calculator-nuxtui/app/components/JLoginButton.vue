@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { BudgetList } from "@/types";
 
+const apiUrl = useRuntimeConfig().public.apiUrl;
+
 const emit = defineEmits<{
   (e: "logged-in"): void;
 }>();
@@ -24,7 +26,7 @@ async function userSignUp() {
   } else {
     confirmationFailed.value = false;
     try {
-      const res = await $fetch("http://localhost:4000/api/users", {
+      const res = await $fetch(`${apiUrl}/api/users`, {
         method: "POST",
         body: {
           username: username.value,
@@ -61,7 +63,7 @@ async function userSignUp() {
 async function userLogin() {
   try {
     const res = await $fetch<{ budgetList: BudgetList }>(
-      "http://localhost:4000/api/login",
+      `${apiUrl}/api/login`,
       {
         method: "POST",
         body: {

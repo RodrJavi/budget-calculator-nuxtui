@@ -7,6 +7,8 @@ import fastifyCookie from "@fastify/cookie";
 
 dotenv.config();
 
+const PORT = process.env.PORT || 3000;
+
 const fastify = Fastify({
   logger: true,
 });
@@ -22,7 +24,7 @@ fastify.register(import("fastify-jwt"), {
 });
 
 fastify.register(cors, {
-  origin: "http://localhost:3000",
+  origin: process.env.CORS_ORIGIN || "*",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 });
@@ -175,15 +177,15 @@ fastify.put("/api/save-budget", async (req, reply) => {
   return reply.send({ message: budgetList });
 });
 
-fastify.listen({ port: 4000 }, (err, address) => {
-  if (err) throw err;
-  console.log(`Server listening at ${address}`);
-});
-
 // Logs user out
 
 fastify.post("/api/logout", async (req, reply) => {
   return reply
     .clearCookie("token", { path: "/" })
     .send({ message: "Logged out" });
+});
+
+fastify.listen({ port: PORT, host: "0.0.0.0" }, (err, address) => {
+  if (err) throw err;
+  console.log(`Server listening at ${address}`);
 });

@@ -3,6 +3,8 @@
 import type { User, BudgetList } from "@/types";
 const store = useEntryStore();
 
+const apiUrl = useRuntimeConfig().public.apiUrl;
+
 /*const testIncomes = [
   {
     title: "My job",
@@ -74,7 +76,7 @@ async function checkLogin() {
       authenticated: boolean;
       user?: User["user"];
       budgetList: BudgetList;
-    }>("http://localhost:4000/api/auth-check", {
+    }>(`${apiUrl}/api/auth-check`, {
       credentials: "include",
     });
     if (res.authenticated && res.user) {
@@ -97,7 +99,7 @@ async function checkLogin() {
 // Saving budgetlist to the database
 async function saveBudgetList() {
   try {
-    const res = await $fetch("http://localhost:4000/api/save-budget", {
+    const res = await $fetch(`${apiUrl}/api/save-budget`, {
       method: "PUT",
       body: {
         budgetList: {
@@ -124,7 +126,7 @@ async function saveBudgetList() {
 
 async function logUserOut() {
   try {
-    const res = await $fetch("http://localhost:4000/api/logout", {
+    const res = await $fetch(`${apiUrl}/api/logout`, {
       method: "POST",
       credentials: "include",
     });

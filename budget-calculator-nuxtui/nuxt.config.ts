@@ -2,6 +2,12 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
+  runtimeConfig: {
+    public: {
+      apiUrl: process.env.NUXT_PUBLIC_API_URL || "http://localhost:3000",
+    },
+  },
+
   modules: ["@nuxt/ui", "@nuxt/eslint", "@pinia/nuxt", "nuxt-echarts"],
 
   css: ["~/assets/css/main.css"],
