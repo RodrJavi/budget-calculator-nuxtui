@@ -23,8 +23,23 @@ fastify.register(import("fastify-jwt"), {
   },
 });
 
+// fastify.register(cors, {
+//   origin: process.env.CORS_ORIGIN,
+//   credentials: true,
+//   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+// });
+
 fastify.register(cors, {
-  origin: process.env.CORS_ORIGIN,
+  origin: (origin, cb) => {
+    const allowedOrigins = (process.env.CORS_ORIGIN || "").split(",");
+
+    // allow requests with no origin (like curl or mobile apps)
+    if (!origin || allowedOrigins.includes(origin)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 });
